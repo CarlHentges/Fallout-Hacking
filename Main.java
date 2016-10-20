@@ -4,21 +4,47 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.util.Random;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JFrame;
 
 public class Main implements Runnable {
 
 	private boolean running;
-	public static final int WIDTH = 500, HEIGHT = 500;
+	public static final int WIDTH = 650, HEIGHT = 650;
 	private Random rand = new Random();
 	private Thread thread;
 	private static Canvas canvas;	
-	private int attempts = 3;
+	private int attempts = 3, addressStart = rand.nextInt(65152);
+	private String word;
+	private char[] text = new char[384];
+	private HashMap<Integer, ArrayList<String>> sizedDict = new HashMap<Integer, ArrayList<String>>();
 
 	public Main() {
 		canvas = new Canvas();
 		canvas.setSize(WIDTH, HEIGHT);
+
+		File file = new File("dict.txt");
+		try {
+			String line;
+			BufferedReader br = new BufferedReader(new FileReader(file));
+       		while ((line = br.readLine()) != null) {
+				String temp = line.replace("\n", "");
+				if (sizedDict.get(temp.length()) == null) {
+					sizedDict.put(temp.length(), new ArrayList<String>());
+				}
+				ArrayList<String> list = sizedDict.get(temp.length());
+				list.add(temp);
+			}
+			br.close();
+		} catch (IOException e) {
+     		e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {
@@ -71,6 +97,14 @@ public class Main implements Runnable {
 	public void update() {
 		
 	}
+
+	public void generateWords() {
+		int size = rand.nextInt(3) + 3;
+		ArrayList<String> words = sizedDict.get(size);
+		word = words.get(rand.nextInt(words.size()));
+
+		for (int i = 0; i < )
+	}
 	
 	public void render() {
 		BufferStrategy bs = canvas.getBufferStrategy();
@@ -93,9 +127,17 @@ public class Main implements Runnable {
 		g.drawString("Password Required", 10, 60);
 		g.drawString("Attempts Remaining:", 10, 100);
 		for (int i = 0; i < attempts; i++) {
-			g.fillRect(230 + (i * 20), 88, 12, 14);
+			g.fillRect(200 + (i * 20), 88, 12, 14);
 		}	
-	
+		
+		for (int i = 0; i < 32; i++) {
+			int xoff = (i < 16) ? 10 : 260, yoff = (i % 16) * 30 + 130;
+			String temp = Integer.toHexString(addressStart + 12 * i).toUpperCase();
+			for (int j = temp.length(); j < 4; j++)
+				temp = "0" + temp;
+			g.drawString("0x" + temp, xoff, yoff);
+		}
+
 		g.dispose();
 		bs.show();
 	}
